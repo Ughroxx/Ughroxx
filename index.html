@@ -297,12 +297,51 @@
       letter-spacing: 1px;
     }
 
-    /* Social Section */
+    /* Social Section - FIXED: Ensure full containment and transparent background */
+    #social {
+      padding: 80px 20px;
+      overflow: visible;
+      width: 100%;
+      background: transparent !important;
+    }
+
+    #social h1 {
+      font-family: 'Bebas Neue', sans-serif;
+      font-size: clamp(2rem, 6vw, 48px);
+      letter-spacing: 0.1em;
+      text-align: center;
+      margin-bottom: 40px;
+      color: #fff;
+      text-shadow: 2px 2px 4px rgba(0, 0, 0, 0.7);
+    }
+
+    .social-container {
+      width: 100%;
+      overflow: hidden;
+      border-radius: 12px;
+      box-shadow: 0 8px 24px rgba(0, 0, 0, 0.4);
+      background: transparent !important;
+      border: 1px solid rgba(255, 255, 255, 0.1);
+      height: clamp(600px, 80vh, 900px);
+      position: relative;
+    }
+
     .taggbox {
       width: 100%;
-      max-width: 1400px;
-      height: 600px;
-      margin: 0 auto;
+      height: 100%;
+      border: none;
+      overflow: hidden;
+      position: absolute;
+      top: 0;
+      left: 0;
+      right: 0;
+      bottom: 0;
+      background: transparent !important;
+    }
+
+    /* Force Taggbox iframe to be transparent */
+    .taggbox iframe {
+      background: transparent !important;
     }
 
     /* Portfolio Section */
@@ -419,7 +458,7 @@
       text-align: center;
       user-select: none;
       font-family: 'Bebas Neue', sans-serif;
-      font-size: 1rem;
+      font-size: 1.4rem;
       border-top: 1px solid #333;
       z-index: 5;
     }
@@ -494,8 +533,8 @@
         font-size: 0.95rem;
       }
 
-      .taggbox {
-        height: 500px;
+      .social-container {
+        height: clamp(500px, 70vh, 700px);
       }
     }
 
@@ -546,12 +585,12 @@
         font-size: 0.85rem;
       }
 
-      .taggbox {
-        height: 400px;
+      .social-container {
+        height: clamp(400px, 60vh, 550px);
       }
 
       footer {
-        font-size: 0.85rem;
+        font-size: 1.4rem;
         padding: 14px 6px;
       }
 
@@ -561,6 +600,12 @@
 
       .social-links a {
         font-size: 1.4rem;
+      }
+    }
+
+    @media (max-width: 400px) {
+      .social-container {
+        height: clamp(350px, 55vh, 500px);
       }
     }
   </style>
@@ -579,11 +624,11 @@
   </nav>
 
   <!-- Home Section -->
-  <section id="home">
-    <div id="moveMe">MOVE ME</div>
-    <img src="images/bambi.png" id="bambi" alt="Bambi" />
-    <a href="#about" id="shopBtn">ABOUT UGHROXX</a>
-  </section>
+<section id="home">
+  <div id="moveMe">MOVE ME</div>
+  <img src="images/bambi.png" id="bambi" alt="Bambi" draggable="false" />
+  <a href="#about" id="shopBtn">ABOUT UGHROXX</a>
+</section>
 
   <!-- About Section -->
   <section id="about">
@@ -662,7 +707,9 @@
   <!-- Social Section -->
   <section id="social">
     <h1>Social Content</h1>
-    <div class="taggbox" style="width:100%;height:100%;" data-widget-id="302694" website="1"></div>
+    <div class="social-container">
+      <div class="taggbox" data-widget-id="302694" data-website="1"></div>
+    </div>
   </section>
 
   <!-- Portfolio Section -->
@@ -694,18 +741,121 @@
   <!-- Footer -->
   <footer>
     © 2025 Ughroxx Clothing Brand
-    <div class="social-links">
-      <a href="https://www.instagram.com/ughroxx/?igsh=MXF6YXl6cDdvcTlrMQ%3D%3D&utm_source=qr" target="_blank" aria-label="Instagram">
-        <i class="fab fa-instagram"></i>
-      </a>
-      <a href="https://www.linkedin.com/in/rossella-macri" target="_blank" aria-label="LinkedIn">
-        <i class="fab fa-linkedin"></i>
-      </a>
-    </div>
   </footer>
 
-  <!-- Script for slideshow -->
-  <script>
+<!-- Script for draggable Bambi and slideshow -->
+<script>
+  document.addEventListener('DOMContentLoaded', function() {
+    // Make Bambi draggable
+    const bambi = document.getElementById('bambi');
+    const moveMeText = document.getElementById('moveMe');
+    
+    if (bambi) {
+      let isDragging = false;
+      let currentX;
+      let currentY;
+      let initialX;
+      let initialY;
+      let xOffset = 0;
+      let yOffset = 0;
+
+      // Add drag cursor style
+      bambi.style.cursor = 'grab';
+      bambi.style.position = 'relative';
+      bambi.style.zIndex = '10';
+      
+      // Update move me text to indicate it's draggable
+      if (moveMeText) {
+        moveMeText.style.cursor = 'pointer';
+        moveMeText.title = 'Click and drag the image below';
+      }
+
+      bambi.addEventListener('mousedown', dragStart);
+      bambi.addEventListener('mouseup', dragEnd);
+      bambi.addEventListener('mousemove', drag);
+      
+      // Touch events for mobile
+      bambi.addEventListener('touchstart', dragStart);
+      bambi.addEventListener('touchend', dragEnd);
+      bambi.addEventListener('touchmove', drag);
+
+      function dragStart(e) {
+        e.preventDefault();
+        
+        if (e.type === 'touchstart') {
+          initialX = e.touches[0].clientX - xOffset;
+          initialY = e.touches[0].clientY - yOffset;
+        } else {
+          initialX = e.clientX - xOffset;
+          initialY = e.clientY - yOffset;
+        }
+
+        if (e.target === bambi) {
+          isDragging = true;
+          bambi.style.cursor = 'grabbing';
+          bambi.style.transition = 'none'; // Remove transition during drag
+        }
+      }
+
+      function dragEnd(e) {
+        e.preventDefault();
+        initialX = currentX;
+        initialY = currentY;
+        isDragging = false;
+        bambi.style.cursor = 'grab';
+        
+        // Add smooth transition back when not dragging
+        setTimeout(() => {
+          bambi.style.transition = 'transform 0.3s ease';
+        }, 100);
+      }
+
+      function drag(e) {
+        e.preventDefault();
+        
+        if (isDragging) {
+          if (e.type === 'touchmove') {
+            currentX = e.touches[0].clientX - initialX;
+            currentY = e.touches[0].clientY - initialY;
+          } else {
+            currentX = e.clientX - initialX;
+            currentY = e.clientY - initialY;
+          }
+
+          xOffset = currentX;
+          yOffset = currentY;
+          
+          setTranslate(currentX, currentY, bambi);
+        }
+      }
+
+      function setTranslate(xPos, yPos, el) {
+        el.style.transform = `translate3d(${xPos}px, ${yPos}px, 0)`;
+      }
+
+      // Double click to reset position
+      bambi.addEventListener('dblclick', function(e) {
+        e.preventDefault();
+        bambi.style.transition = 'transform 0.5s ease';
+        bambi.style.transform = 'translate3d(0, 0, 0)';
+        xOffset = 0;
+        yOffset = 0;
+      });
+
+      // Click on "MOVE ME" text to add a little bounce
+      if (moveMeText) {
+        moveMeText.addEventListener('click', function() {
+          bambi.style.transition = 'transform 0.3s ease';
+          bambi.style.transform = 'translateY(-10px) scale(1.05)';
+          
+          setTimeout(() => {
+            bambi.style.transform = 'translateY(0) scale(1)';
+          }, 300);
+        });
+      }
+    }
+
+    // Your existing slideshow code
     const imageGroups = [
       [
         { src: "images/slide/slide1.jpeg", alt: "Streetwear 1" },
@@ -730,25 +880,106 @@
       document.getElementById('slide-3')
     ];
 
-    const indices = [0, 0, 0];
+    // Check if all slide elements were found
+    const allSlidesFound = slideElements.every(el => el !== null);
+    
+    if (allSlidesFound) {
+      const indices = [0, 0, 0];
 
-    function changeSlide(i) {
-      const el = slideElements[i];
-      indices[i] = (indices[i] + 1) % imageGroups[i].length;
-      el.style.opacity = 0;
+      function changeSlide(i) {
+        const el = slideElements[i];
+        if (!el) return;
+        
+        indices[i] = (indices[i] + 1) % imageGroups[i].length;
+        el.style.opacity = 0;
 
-      setTimeout(() => {
-        el.src = imageGroups[i][indices[i]].src;
-        el.alt = imageGroups[i][indices[i]].alt;
-        el.style.opacity = 1;
-      }, 600); // fade duration
+        setTimeout(() => {
+          el.src = imageGroups[i][indices[i]].src;
+          el.alt = imageGroups[i][indices[i]].alt;
+          el.style.opacity = 1;
+        }, 600);
+      }
+
+      // Staggered intervals
+      setInterval(() => changeSlide(0), 4000);
+      setInterval(() => changeSlide(1), 5000);
+      setInterval(() => changeSlide(2), 6000);
     }
 
-    // Staggered intervals
-    setInterval(() => changeSlide(0), 4000);
-    setInterval(() => changeSlide(1), 5000);
-    setInterval(() => changeSlide(2), 6000);
-  </script>
+    // Your existing Taggbox optimization code...
+    function optimizeForLowPowerDevices() {
+      const isOldiPhone = /iPhone OS 1[0-2]_|iPhone OS 9_|iPhone OS 8_/.test(navigator.userAgent);
+      
+      if (isOldiPhone || window.innerWidth <= 375) {
+        console.log('Optimizing for older iPhone...');
+        
+        const meta = document.createElement('meta');
+        meta.name = 'taggbox-max-items';
+        meta.content = '30';
+        document.head.appendChild(meta);
+        
+        const noAutoplay = document.createElement('meta');
+        noAutoplay.name = 'taggbox-no-autoplay';
+        noAutoplay.content = 'true';
+        document.head.appendChild(noAutoplay);
+        
+        const simpleLayout = document.createElement('meta');
+        simpleLayout.name = 'taggbox-simple-layout';
+        simpleLayout.content = 'true';
+        document.head.appendChild(simpleLayout);
+      }
+    }
+
+    function fixTaggboxBackground() {
+      const style = document.createElement('style');
+      style.textContent = `
+        .tb_widget, 
+        .tb_feed_container, 
+        .tb_feed_content,
+        .taggbox-container,
+        [class*="taggbox"],
+        [class*="tb_"] {
+          background: transparent !important;
+        }
+        .taggbox iframe {
+          background: transparent !important;
+        }
+      `;
+      document.head.appendChild(style);
+      
+      setTimeout(() => {
+        const taggboxIframe = document.querySelector('.taggbox iframe');
+        if (taggboxIframe) {
+          taggboxIframe.style.background = 'transparent';
+        }
+        
+        const allElements = document.querySelectorAll('*');
+        allElements.forEach(el => {
+          const compStyle = window.getComputedStyle(el);
+          if (compStyle.backgroundColor !== 'rgba(0, 0, 0, 0)' && 
+              compStyle.backgroundColor !== 'transparent' &&
+              (el.className.includes('taggbox') || el.className.includes('tb_'))) {
+            el.style.background = 'transparent';
+          }
+        });
+      }, 3000);
+    }
+
+    optimizeForLowPowerDevices();
+    fixTaggboxBackground();
+    
+    const optimizeTaggboxForMobile = function() {
+      const taggboxContainer = document.querySelector('.taggbox');
+      if (taggboxContainer && 'ontouchstart' in window) {
+        taggboxContainer.style.webkitOverflowScrolling = 'touch';
+      }
+    };
+    
+    if ('ontouchstart' in window) {
+      optimizeTaggboxForMobile();
+    }
+  });
+</script>
 
   <!-- Taggbox script -->
   <script src="https://widget.taggbox.com/embed.min.js" type="text/javascript"></script>
